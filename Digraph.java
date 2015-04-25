@@ -6,6 +6,8 @@ public class Digraph<V> {
     public static class Edge<V>{
         private V vertex;
         private Float cost;
+        private Float minDistance = Float.POSITIVE_INFINITY;
+        private V prev;
 
         public Edge(V v, Float c){
             vertex = v; cost = c;
@@ -15,7 +17,7 @@ public class Digraph<V> {
             return vertex;
         }
 
-        public float getCost() {
+        public Float getCost() {
             return cost;
         }
 
@@ -23,13 +25,11 @@ public class Digraph<V> {
         public String toString() {
             return "\n        " + vertex + " " + cost;
         }
-
     }
 
     /**
      * A Map is used to map each vertex to its list of adjacent vertices.
      */
-
     private Map<V, List<Edge<V>>> neighbors = new HashMap<V, List<Edge<V>>>();
 
     /**
@@ -38,9 +38,8 @@ public class Digraph<V> {
     public String toString() {
         StringBuffer s = new StringBuffer();
         SortedSet<String> Vertex = new TreeSet<String>((Collection<? extends String>) neighbors.keySet());
-        for (String v : Vertex) {
+        for (String v : Vertex)
             s.append("\n    " + v + neighbors.get(v));
-        }
         return s.toString();
     }
 
@@ -74,11 +73,54 @@ public class Digraph<V> {
         }
     }
 
+    public void computePaths(V start) {
+        Float minDistance = Float.valueOf(0);
+        PriorityQueue<V> vQ = new PriorityQueue<V>();
+        vQ.add(start);
 
-    public static void main(String[] args) throws IOException {
+        V u = null;
+        while (!vQ.isEmpty()) {
+            u = vQ.poll();
+        }
+        List<Edge<V>> edgeSet = neighbors.get(u);
+        for(int i = 0; i < edgeSet.size(); i++){
+            Edge<V> v = edgeSet.get(i);
+            Float weight = v.getCost();
+            Float distThroughU = minDistance + weight;
+            if(distThroughU < v.minDistance ){
+                vQ.remove(v);
+                v.minDistance = distThroughU;
+                minDistance = distThroughU;
+                v.prev = u;
+                vQ.add((V) v);
+            }
+        }
+    }
+
+    public List<V> ShortestPath(V to){
+        List<V> path = new ArrayList<V>();
+        for(Edge<V> v = (Edge<V>) to; v != null; v = (Edge<V>) v.prev){
+            path.add((V) v);
+        }
+        Collections.reverse(path);
+
+        return path;
+    }
+    public static void main (String[] args)
+    {
+        try
+        {
+            Digraph obj = new Digraph ();
+            obj.run (args);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace ();
+        }
+    }
+    public void run(String[] args) throws IOException {
 
         Digraph<String> graph = new Digraph<String>();
-
 
         String file1, content;
         String[] parts;
@@ -103,6 +145,9 @@ public class Digraph<V> {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+
+
+
         while(true) {
             System.out.println("1. add Edge\n2.remove edge\n3.print Current Graph\n4.Reachable vertices\n5.shortest path\n6.Quit");
             System.out.print("Pick an option: ");
@@ -128,6 +173,14 @@ public class Digraph<V> {
                 System.out.print("    Enter second vertex: ");
                 String v2 = scanner1.nextLine();
                 graph.removeEdge(v1, v2);
+            }
+            if(choice.equalsIgnoreCase("5") || choice.equalsIgnoreCase("shortest path") || choice.equalsIgnoreCase("path")){
+                System.out.print("    Enter starting vertex: ");
+                String v1 = scanner1.nextLine();
+                System.out.print("    Enter ending vertex: ");
+                String v2 = scanner1.nextLine();
+                computePaths((V) v1);
+                ShortestPath((V) v2);
             }
         }
 
